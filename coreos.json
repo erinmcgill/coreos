@@ -1,0 +1,98 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Simple CoreOS install",
+    "Parameters": {
+        "GistURL": {
+            "Description": "URL to a github gist with your public key",
+            "Type": "String"
+        },
+        "KeyName": {
+            "Description": "EC2 keypair name",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "CoreOSGroup": {
+            "Properties": {
+                "AvailabilityZones": {
+                    "Fn::GetAZs": ""
+                },
+                "LaunchConfigurationName": {
+                    "Ref": "LaunchConfig"
+                },
+                "MaxSize": "3",
+                "MinSize": "3",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "PropagateAtLaunch": true,
+                        "Value": "CoreOS Instance"
+                    }
+                ]
+            },
+            "Type": "AWS::AutoScaling::AutoScalingGroup"
+        },
+        "CoreOSSecurityGroup": {
+            "Properties": {
+                "GroupDescription": "Enable SSH and mosh access",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "22",
+                        "IpProtocol": "tcp",
+                        "ToPort": "22"
+                    }
+                ]
+            },
+            "Type": "AWS::EC2::SecurityGroup"
+        },
+        "Etcd4001IngressRule": {
+            "Properties": {
+                "FromPort": "4001",
+                "GroupName": {
+                    "Ref": "CoreOSSecurityGroup"
+                },
+                "IpProtocol": "tcp",
+                "SourceSecurityGroupName": {
+                    "Ref": "CoreOSSecurityGroup"
+                },
+                "ToPort": "4001"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "Etcd7001IngressRule": {
+            "Properties": {
+                "FromPort": "7001",
+                "GroupName": {
+                    "Ref": "CoreOSSecurityGroup"
+                },
+                "IpProtocol": "tcp",
+                "SourceSecurityGroupName": {
+                    "Ref": "CoreOSSecurityGroup"
+                },
+                "ToPort": "7001"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
+        "LaunchConfig": {
+            "Properties": {
+                "ImageId": "ami-993e7cf0",
+                "InstanceType": "t1.micro",
+                "KeyName": {
+                    "Ref": "KeyName"
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "CoreOSSecurityGroup"
+                    }
+                ],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Ref": "GistURL"
+                    }
+                }
+            },
+            "Type": "AWS::AutoScaling::LaunchConfiguration"
+        }
+    }
+}
