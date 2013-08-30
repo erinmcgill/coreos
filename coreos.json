@@ -46,6 +46,20 @@
             },
             "Type": "AWS::EC2::SecurityGroup"
         },
+        "HTTPIngressRule":{
+            "Properties": {
+                "FromPort": "80",
+                "GroupName": {
+                    "Ref": "CoreOSSecurityGroup" 
+                },
+                "IpProtocol": "tcp",
+                "SourceSecurityGroupName": {
+                    "Ref": "CoreOSSecurityGroup"
+                },
+                "ToPort": "80"
+            },
+            "Type": "AWS::EC2::SecurityGroupIngress"
+        },
         "Etcd4001IngressRule": {
             "Properties": {
                 "FromPort": "4001",
